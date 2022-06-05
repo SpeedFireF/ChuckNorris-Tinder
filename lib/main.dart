@@ -1,9 +1,25 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:json_annotation/json_annotation.dart';
+
+part 'main.g.dart';
 
 void main() {
   runApp(const MyApp());
+}
+
+@JsonSerializable()
+class JokeJsonSerializable {
+  @JsonKey(name: 'value')
+  final String joke;
+
+  JokeJsonSerializable(this.joke);
+
+  factory JokeJsonSerializable.fromJson(Map<String, dynamic> json) =>
+      _$JokeJsonSerializableFromJson(json);
+
+  Map<String, dynamic> toJson() => _$JokeJsonSerializableToJson(this);
 }
 
 class MyApp extends StatelessWidget {
@@ -62,19 +78,21 @@ class _JokesState extends State<Jokes> {
           child: Center(
               child: GestureDetector(
             onPanUpdate: (details) {
-              if (details.delta.dx > 0) {
+              if (details.delta.dx > 10) {
                 setState(() {
                   getData('https://api.chucknorris.io/jokes/random')
                       .then((value) {
-                    joke = value["value"].toString();
+                    var user = JokeJsonSerializable.fromJson(value);
+                    joke = user.joke;
                   });
                 });
               }
-              if (details.delta.dx < 0) {
+              if (details.delta.dx < 10) {
                 setState(() {
                   getData('https://api.chucknorris.io/jokes/random')
                       .then((value) {
-                    joke = value["value"].toString();
+                    var user = JokeJsonSerializable.fromJson(value);
+                    joke = user.joke;
                   });
                 });
               }
