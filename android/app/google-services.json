@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "105985038362",
+    "firebase_url": "https://tinder-with-chuck-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "tinder-with-chuck",
+    "storage_bucket": "tinder-with-chuck.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:105985038362:android:f60b45a02cbbdd66de99a3",
+        "android_client_info": {
+          "package_name": "com.example.new_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "105985038362-gtbd20pg71e5qgupqmnd2150qivi3o4m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhWw9lBmCMUAkeJHIVzLFwYLh9n5mTGgQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "105985038362-gtbd20pg71e5qgupqmnd2150qivi3o4m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
