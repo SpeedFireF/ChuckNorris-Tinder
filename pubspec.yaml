@@ -39,6 +39,7 @@ dependencies:
   english_words: ^4.0.0
   firebase_core: ^1.18.0
   firebase_database: ^9.0.16
+  firebase_crashlytics: ^2.8.2
 
 dev_dependencies:
   json_serializable: 6.1.4

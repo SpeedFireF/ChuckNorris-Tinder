@@ -1,12 +1,17 @@
+import 'dart:collection';
 import 'dart:convert';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'constants/colors.dart';
 import 'firebase_options.dart';
 
 part 'main.g.dart';
+
+late DatabaseReference realtimedb;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,8 +19,10 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  var realtimedb =FirebaseDatabase.instanceFor(app: app).ref('test');
-  realtimedb.push().set('123');
+  // Pass all uncaught errors from the framework to Crashlytics.
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+  realtimedb = FirebaseDatabase.instanceFor(app: app).ref('test');
   runApp(const MyApp());
 }
 
@@ -37,74 +44,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       title: 'Norris Tinder',
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Tinder! (But better)',
-            textAlign: TextAlign.center,
-          ),
-          backgroundColor: Colors.grey,
-        ),
-        body: const Center(
-          child: FirstRoute(),
-        ),
-      ),
-    );
-  }
-}
-
-extension HexColor on Color {
-  static Color fromHex(String hexString) {
-    final buffer = StringBuffer();
-    if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
-    buffer.write(hexString.replaceFirst('#', ''));
-    return Color(int.parse(buffer.toString(), radix: 16));
-  }
-}
-
-class FirstRoute extends StatelessWidget {
-  const FirstRoute({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('First Route'),
-      ),
-      body: Center(
-        child: ElevatedButton(
-          child: const Text('Open route'),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const Jokes()),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class SecondRoute extends StatelessWidget {
-  const SecondRoute({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Second Route'),
-      ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('Go back!'),
-        ),
-      ),
+      home: Jokes(),
     );
   }
 }
@@ -126,113 +68,216 @@ class _JokesState extends State<Jokes> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData.dark(),
-      home: Scaffold(
-        body: SafeArea(
-          child: Center(
+    return SafeArea(
+        child: Scaffold(
+          appBar: AppBar(
+            elevation: 0,
+            title:Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                const Text(
+                  'Tinder! (But better)',
+                  style: TextStyle(
+                      color: MainColors.secondColor,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w400),
+                ),
+                IconButton(onPressed: (){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => const SavedJokes(),
+                    ),
+                  );
+                }, icon: const Icon(Icons.list, color: MainColors.secondColor))
+              ],
+            ),
+
+            backgroundColor: MainColors.secondPageBackGround,
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(4.0),
+              child: Container(
+                color: MainColors.secondColor,
+                height: 2.0,
+              ),
+            ),
+          ),
+          backgroundColor: MainColors.secondPageBackGround,
+          body: Center(
               child: GestureDetector(
-            onPanUpdate: (details) {
-              if (details.delta.dx > 10) {
-                setState(() {
-                  getData('https://api.chucknorris.io/jokes/random')
-                      .then((value) {
-                    var user = JokeJsonSerializable.fromJson(value);
-                    joke = user.joke;
-                  });
-                });
-              }
-              if (details.delta.dx < 10) {
-                setState(() {
-                  getData('https://api.chucknorris.io/jokes/random')
-                      .then((value) {
-                    var user = JokeJsonSerializable.fromJson(value);
-                    joke = user.joke;
-                  });
-                });
-              }
-            },
-            child: Container(
-                width: 350,
-                height: 450,
-                decoration: BoxDecoration(
-                    color: Colors.grey, border: Border.all(width: 3)),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Text(
-                          joke,
-                          style: const TextStyle(fontSize: 16),
-                          textAlign: TextAlign.center,
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              getData('https://api.chucknorris.io/jokes/random')
-                                  .then((value) {
-                                joke = value["value"].toString();
-                              });
-                            });
-                          },
-                          icon: const Icon(Icons.favorite),
-                          color: HexColor.fromHex('#ffcc00'),
-                          iconSize: 60,
-                        ),
-                      ]),
-                )),
-          )),
-        ),
+                onPanUpdate: (details) {
+                  if (details.delta.dx > 10) {
+                    setState(() {
+                      getData('https://api.chucknorris.io/jokes/random')
+                          .then((value) {
+                        var user = JokeJsonSerializable.fromJson(value);
+                        joke = user.joke;
+                      });
+                    });
+                  }
+                  if (details.delta.dx < 10) {
+
+                    setState(() {
+                      getData('https://api.chucknorris.io/jokes/random')
+                          .then((value) {
+                        var user = JokeJsonSerializable.fromJson(value);
+                        joke = user.joke;
+                      });
+                    });
+                  }
+                },
+                child: Container(
+                    width: 350,
+                    height: 450,
+                    decoration: BoxDecoration(
+                        color: MainColors.mainColor,
+                        border: Border.all(
+                            width: 2, color: MainColors.secondColor)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Text(
+                              joke,
+                              style: const TextStyle(fontSize: 20),
+                              textAlign: TextAlign.center,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                IconButton(
+                                  onPressed: () async {
+                                    var data = await getData('https://api.chucknorris.io/jokes/random');
+                                    var user = JokeJsonSerializable.fromJson(data);
+                                    setState((){ joke = user.joke;});
+                                    },
+                                  icon: const Icon(Icons.favorite),
+                                  color: MainColors.secondColor,
+                                  iconSize: 60,
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    realtimedb.push().set(joke);
+                                  },
+                                  icon: const Icon(Icons.add_circle_sharp),
+                                  color: MainColors.secondColor,
+                                  iconSize: 60,
+                                ),
+                              ],
+                            )
+                          ]),
+                    )),
+              )),
         floatingActionButton: Builder(builder: (context) {
           return FloatingActionButton(
-            backgroundColor: Colors.grey,
+            backgroundColor: MainColors.secondColor,
             child: const Icon(
               Icons.account_circle,
               size: 35.0,
-              color: Color.fromRGBO(255, 204, 0, 1),
+              color: MainColors.secondPageButtonColor,
             ),
             onPressed: () {
               showModalBottomSheet(
                 context: context,
-                builder: (context) => SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      const Text(
-                        'Personal Information:',
-                        style: TextStyle(fontSize: 25),
-                      ),
-                      SizedBox(
-                        width: 400,
-                        height: 200,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            const Text('Full Name: Abdulayev Damir'),
-                            const Text('Date of birth: 30/09/2003'),
-                            const Text(
-                                'Email: d.abdulayev@innopolis.university'),
-                            const Text('Occupation: Flutter student'),
-                            Image.network(
-                              'https://sun9-east.userapi.com/sun9-41/s/v1/ig2/rWNeo2aCPcz4S_YeoZErICSuVcnFBSImYfVGb7o-NyseGop6MVwPhLlYF6Mg-mZaj7CXkPTvm1C-b_mrcYGtjxxM.jpg?size=1440x2160&quality=95&type=album',
-                              width: 100,
-                              height: 100,
+                builder: (context) =>
+                    SafeArea(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          const Text(
+                            'Personal Information:',
+                            style: TextStyle(fontSize: 25),
+                          ),
+                          SizedBox(
+                            width: 400,
+                            height: 200,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                const Text('Full Name: Abdulayev Damir'),
+                                const Text('Date of birth: 30/09/2003'),
+                                const Text(
+                                    'Email: d.abdulayev@innopolis.university'),
+                                const Text('Occupation: Flutter student'),
+                                Image.network(
+                                  'https://sun9-east.userapi.com/sun9-41/s/v1/ig2/rWNeo2aCPcz4S_YeoZErICSuVcnFBSImYfVGb7o-NyseGop6MVwPhLlYF6Mg-mZaj7CXkPTvm1C-b_mrcYGtjxxM.jpg?size=1440x2160&quality=95&type=album',
+                                  width: 100,
+                                  height: 100,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
               );
             },
           );
-        }),
-      ),
+        }),),
     );
   }
+}
+
+class SavedJokes extends StatefulWidget {
+  const SavedJokes({Key? key}) : super(key: key);
+
+  @override
+  State<SavedJokes> createState() => _SavedJokesState();
+}
+
+class _SavedJokesState extends State<SavedJokes> {
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+        child: Scaffold(
+          appBar: AppBar(
+            elevation: 0,
+            title: const Center(
+              child: Text(
+                'Tinder! (But better)',
+                style: TextStyle(
+                    color: MainColors.secondColor,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w400),
+              ),
+            ),
+            backgroundColor: MainColors.secondPageBackGround,
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(4.0),
+              child: Container(
+                color: MainColors.secondColor,
+                height: 2.0,
+              ),
+            ),
+          ),
+          body: FutureBuilder(
+            future: getFavorites(),
+            builder: (context, snapshot){
+              if (!snapshot.hasData){
+                return const CircularProgressIndicator();
+              }
+              var data = snapshot.data as SplayTreeMap<String, dynamic>;
+              return ListView(
+                children: data.keys.map((e) {
+                  return Container(
+                    margin: const EdgeInsets.all(20),
+                    child: Text(data[e], style: const TextStyle(fontSize: 16),),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+
+        ),
+    );
+  }
+}
+
+Future<SplayTreeMap<String, dynamic>> getFavorites() async {
+  var data = await realtimedb.get();
+  return SplayTreeMap<String, dynamic>.from(data.value as Map);
 }
